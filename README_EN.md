@@ -2,7 +2,7 @@
 
 [English Documentation](README_EN.md) | [中文文档](README.md)
 
-An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习通)**, built upon the **Manifest V3** standard. It seamlessly migrates and elevates core DOM parsing and simulation strategies, providing a full-loop workflow: question structure extraction, LLM API inference, human-like mouse/keyboard interactions, draft saving, and auto-submission with immediate termination.
+An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习通)**, built upon the **Manifest V3** standard (Version: **v1.0.1**). It seamlessly migrates and elevates core DOM parsing and simulation strategies, providing a full-loop workflow: question structure extraction, LLM API inference, human-like mouse/keyboard interactions, draft saving, and auto-submission with immediate termination.
 
 ---
 
@@ -10,7 +10,7 @@ An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习�
 
 > [!TIP]
 > ### 📦 Direct Download Links (Ready to use)
-> - 🚀 **[Download Latest Extension Package (.zip) - v1.0.0](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** (Recommended: Unzip and load directly into Edge)
+> - 🚀 **[Download Latest Extension Package (.zip) - v1.0.1](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.1/chaoxing-quiz-edge-extension-v1.0.1.zip)** (Recommended: Unzip and load directly into Edge)
 > - 🏷️ **[View All Releases on GitHub](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases)**
 > - 📂 **[Download Source Code Archive (main.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/archive/refs/heads/main.zip)**
 
@@ -19,7 +19,7 @@ An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习�
 > Due to the security sandbox enforced by Chromium and Microsoft Edge, external web pages (including GitHub) are **strictly forbidden from opening internal privileged protocols like `edge://` or `chrome://`** via regular web links to prevent malicious script execution or silent extension alterations.
 >
 > **Fast 3-Step Setup**:
-> 1. Download the **[v1.0.0 ZIP Package](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** above and extract it to any folder.
+> 1. Download the **[v1.0.1 ZIP Package](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.1/chaoxing-quiz-edge-extension-v1.0.1.zip)** above and extract it to any folder.
 > 2. Open Microsoft Edge, copy and paste this address into the URL bar and press Enter:
 >    ```text
 >    edge://extensions/
@@ -27,6 +27,19 @@ An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习�
 > 3. Toggle on **"Developer mode"** in the sidebar/top, click **"Load unpacked"**, and select the extracted extension folder!
 >
 > *(Note: If this extension is published to the [Microsoft Edge Add-ons Store](https://microsoftedge.microsoft.com/addons), direct web link installation will be supported.)*
+
+---
+
+## 🚀 v1.0.1 Architecture Fixes & Stability Changelog
+
+- **[P0] Fixed Multi-Frame Racing & Frame Isolation (TASK-01)**: Disabled `match_about_blank`; frames without quiz DOM remain completely silent. Service worker identifies target quiz frame via `scripting.executeScript` and binds communications to `frameId`.
+- **[P0] Frame-Self Injections with Bridge Token & Whitelist (TASK-02 & TASK-08)**: Removed cross-frame delegation. Each quiz frame injects `page_inject.js` directly into its own context with a random `BRIDGE_TOKEN` handshake. Global page method calls are strictly whitelist-gated.
+- **[P0] Symmetric Difference Choice Clicking (TASK-03)**: Redesigned choice selection into symmetric state difference flipping. Eliminates accidental unchecking of multi-choice options upon retry or pre-existing answers.
+- **[P1] Instant Task Abort & 60s Request Timeout (TASK-04 & TASK-05)**: Implemented missing `STOP_TASK` in background service worker using `AbortController` to immediately cancel in-flight API requests and prevent subsequent operations. Added a 60-second fetch timeout.
+- **[P1] Batch Chunking (10 Questions/Batch) & Session Storage (TASK-05)**: Divides large question sets into chunks of 10 to avoid token limits and truncated JSON. Persists `taskState` in `chrome.storage.session` to survive MV3 Service Worker dormancy.
+- **[P1] UEditor Safe HTML Entity Escaping & Paragraphs (TASK-06)**: Removed redundant letter-by-letter typing. Implemented `textToSafeHtml` to escape `<` and `>` while wrapping paragraphs in `<p>`, preserving code snippets and mathematical formulas.
+- **[P2] Image/Formula Extraction & Multi-slot Splitting (TASK-07)**: Extracts images as `[公式/图片: ...]` placeholders with review warnings. Binds answers by unique string `qid`. Automatically splits merged multi-blank strings.
+- **[P2] Smart API Base URL Normalization (TASK-08)**: Automatically completes root-domain URLs to `/v1/chat/completions`.
 
 ---
 

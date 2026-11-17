@@ -6,8 +6,26 @@
   const EXT_SOURCE = 'CHAOXING_QUIZ_EXT_CONTENT';
   const PAGE_SOURCE = 'CHAOXING_QUIZ_EXT_PAGE';
 
+  const currentScript = document.currentScript || document.getElementById('cx-quiz-injected-script');
+  const BRIDGE_TOKEN = currentScript ? (currentScript.dataset.bridgeToken || '') : '';
+  const ALLOWED_PAGE_METHODS = new Set(['saveWork', 'ready2Submit', 'submitValidate', 'syncAnswer', 'loadEditorAnswerd']);
+
+  function textToSafeHtml(rawText) {
+    const str = String(rawText ?? '');
+    const escaped = str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    const lines = escaped.split(/\r?\n/);
+    return lines.map((line) => `<p>${line.trim() ? line : '<br/>'}</p>`).join('');
+  }
+
   window.addEventListener('message', function (event) {
+    if (event.source !== window) return;
     if (!event.data || event.data.source !== EXT_SOURCE) return;
+    if (BRIDGE_TOKEN && event.data.token !== BRIDGE_TOKEN) return;
 
     const { action, payload, requestId } = event.data;
 
@@ -15,6 +33,7 @@
       window.postMessage({
         source: PAGE_SOURCE,
         requestId,
+        token: BRIDGE_TOKEN,
         success,
         result,
         error: error ? (error.message || String(error)) : null
@@ -35,11 +54,11 @@
         case 'SET_EDITOR_CONTENT': {
           const { name, content } = payload;
           let ok = false;
-          if (typeof window.UE !== 'undefined' && window.UE.getEditor) {
+          if (typeof window.UE !== 'undefined' && typeof window.UE.getEditor === 'function') {
             try {
               const ed = window.UE.getEditor(name);
               if (ed) {
-                ed.setContent(content || '');
+                ed.setContent(textToSafeHtml(content));
                 ed.sync();
                 ok = true;
               }
@@ -47,14 +66,15 @@
               console.warn('[PageInject] UE.getEditor error:', err);
             }
           }
-          // 兜底同步 textarea
+          // 同步底层 textarea 并派发事件
           const ta = document.querySelector(`textarea[name="${name}"]`);
           if (ta) {
-            ta.value = content || '';
+            ta.value = String(content ?? '');
             ta.dispatchEvent(new Event('input', { bubbles: true }));
             ta.dispatchEvent(new Event('change', { bubbles: true }));
+            ok = true;
           }
-          reply(true, { ok, name, content });
+          reply(true, { ok, name });
           break;
         }
 
@@ -78,7 +98,7 @@
 
               names.forEach(name => {
                 try {
-                  if (typeof window.UE !== 'undefined' && window.UE.getEditor) {
+                  if (typeof window.UE !== 'undefined' && typeof window.UE.getEditor === 'function') {
                     const ed = window.UE.getEditor(name);
                     if (ed) {
                       ed.sync();
@@ -101,6 +121,11 @@
 
         case 'CALL_PAGE_METHOD': {
           const { methodName, args = [] } = payload;
+          if (!ALLOWED_PAGE_METHODS.has(methodName)) {
+            reply(false, null, new Error(`Method ${methodName} is not permitted`));
+            return;
+          }
+
           if (typeof window[methodName] === 'function') {
             try {
               const ret = window[methodName](...args);
@@ -115,7 +140,6 @@
         }
 
         case 'TRIGGER_SAVE_WORK': {
-          // 调用学习通底层的 saveWork(1) 或 saveWork()
           if (typeof window.saveWork === 'function') {
             try {
               window.saveWork(1);
@@ -130,7 +154,6 @@
         }
 
         case 'TRIGGER_READY_TO_SUBMIT': {
-          // 兜底触发 ready2Submit()
           if (typeof window.ready2Submit === 'function') {
             try {
               window.ready2Submit();
@@ -160,5 +183,9 @@
   });
 
   // 告知 content_script 页面脚本注入就绪
-  window.postMessage({ source: PAGE_SOURCE, action: 'INJECTED_READY' }, '*');
+  window.postMessage({
+    source: PAGE_SOURCE,
+    action: 'INJECTED_READY',
+    token: BRIDGE_TOKEN
+  }, '*');
 })();

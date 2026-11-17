@@ -1,4 +1,4 @@
-// popup.js: 弹出面板控制交互逻辑 (支持中英双语动态切换)
+// popup.js: 弹出面板控制交互逻辑 (v1.0.1 - 动态多语言与精确 frameId 绑定)
 document.addEventListener('DOMContentLoaded', async () => {
   // DOM 元素引用
   const apiUrlInput = document.getElementById('apiUrl');
@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const langToggleBtn = document.getElementById('langToggleBtn');
 
   let currentActiveTabId = null;
+  let quizFrameId = null;
   let currentLang = 'zh';
 
   // ==================== 1. 双语国际化词典 (i18n) ====================
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       stopBtn: '停止',
       consoleTitle: '执行控制台',
       clearLogs: '清空',
-      welcomeLog: '[就绪] 欢迎使用超星学习通全自动答题插件。',
+      welcomeLog: '[就绪] 欢迎使用超星学习通全自动答题插件 (v1.0.1)。',
       consoleCleared: '[控制台已清空]',
       notChaoxingPage: '非超星页面',
       noQuizDetected: '未检测到题目',
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       stopBtn: 'Stop',
       consoleTitle: 'Execution Console',
       clearLogs: 'Clear',
-      welcomeLog: '[Ready] Welcome to Chaoxing Quiz Auto Edge Assistant.',
+      welcomeLog: '[Ready] Welcome to Chaoxing Quiz Auto Edge Assistant (v1.0.1).',
       consoleCleared: '[Console cleared]',
       notChaoxingPage: 'Not Chaoxing page',
       noQuizDetected: 'No questions found',
@@ -170,13 +171,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.runtime.sendMessage({ action: 'CLEAR_LOGS' });
   });
 
-  // ==================== 5. 检查当前标签页作业状态 ====================
+  // ==================== 5. 检查当前标签页作业状态（精准 frameId 探测） ====================
   async function checkCurrentTab() {
     try {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tabs || tabs.length === 0) return;
       const tab = tabs[0];
       currentActiveTabId = tab.id;
+      quizFrameId = null;
 
       if (!tab.url || (!tab.url.includes('chaoxing.com') && !tab.url.includes('xuexi365.net') && !tab.url.includes('edu.cn'))) {
         pageStatusBadge.className = 'status-badge badge-warning';
@@ -184,7 +186,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      chrome.tabs.sendMessage(tab.id, { action: 'CHECK_PAGE_STATUS' }, (res) => {
+      // 通过 scripting.executeScript 精确查找持有题目 DOM 的 frameId
+      if (typeof chrome.scripting !== 'undefined' && chrome.scripting.executeScript) {
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id, allFrames: true },
+            func: () => Boolean(document.querySelector('div.questionLi[id^="question"], [id^="question"][data], h3.mark_name'))
+          });
+          if (Array.isArray(results)) {
+            const match = results.find((r) => r.result === true);
+            if (match && typeof match.frameId === 'number') {
+              quizFrameId = match.frameId;
+            }
+          }
+        } catch (e) {
+          console.warn('[Popup] Scripting frame detection:', e);
+        }
+      }
+
+      const sendOpts = typeof quizFrameId === 'number' ? { frameId: quizFrameId } : {};
+      chrome.tabs.sendMessage(tab.id, { action: 'CHECK_PAGE_STATUS' }, sendOpts, (res) => {
         if (chrome.runtime.lastError || !res) {
           pageStatusBadge.className = 'status-badge badge-warning';
           pageStatusText.textContent = I18N[currentLang].noQuizDetected;
@@ -270,6 +291,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.runtime.sendMessage({
       action: 'START_TASK_FLOW',
       tabId: tab.id,
+      frameId: quizFrameId,
       config
     }, (res) => {
       if (chrome.runtime.lastError) {
@@ -282,11 +304,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   stopBtn.addEventListener('click', async () => {
     stopBtn.disabled = true;
-    if (currentActiveTabId) {
-      chrome.tabs.sendMessage(currentActiveTabId, { action: 'STOP_TASK' }).catch(() => {});
-    }
-    chrome.runtime.sendMessage({ action: 'STOP_TASK' }).catch(() => {});
     startBtn.disabled = false;
+    progressStep.textContent = I18N[currentLang].waitingCommand;
+
+    chrome.runtime.sendMessage({
+      action: 'STOP_TASK',
+      tabId: currentActiveTabId,
+      frameId: quizFrameId
+    }).catch(() => {});
+
+    if (currentActiveTabId) {
+      const sendOpts = typeof quizFrameId === 'number' ? { frameId: quizFrameId } : {};
+      chrome.tabs.sendMessage(currentActiveTabId, { action: 'STOP_TASK' }, sendOpts).catch(() => {});
+    }
   });
 
   // ==================== 8. 同步后台状态与实时推送 ====================

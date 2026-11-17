@@ -2,7 +2,7 @@
 
 [中文文档](README.md) | [English Documentation](README_EN.md)
 
-基于 **Manifest V3** 规范开发的现代化 Edge 浏览器插件。复用并升华了底层自动化答题脚本的核心设计，实现学习通网页端作业/测验全自动识别题目、调用大模型 API 智能推理、模拟拟真键鼠事件作答、先暂存后提交并立即停止的完整自动化闭环。
+基于 **Manifest V3** 规范开发的现代化 Edge 浏览器插件（版本：**v1.0.1**）。复用并升华了底层自动化答题脚本的核心设计，实现学习通网页端作业/测验全自动识别题目、调用大模型 API 智能推理、模拟拟真键鼠事件作答、先暂存后提交并立即停止的完整自动化闭环。
 
 ---
 
@@ -10,7 +10,7 @@
 
 > [!TIP]
 > ### 📦 一键下载链接（即下即用）
-> - 🚀 **[直接下载最新打包扩展 (.zip) - v1.0.0](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)**（推荐：解压后直接在 Edge 载入）
+> - 🚀 **[直接下载最新打包扩展 (.zip) - v1.0.1](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.1/chaoxing-quiz-edge-extension-v1.0.1.zip)**（推荐：解压后直接在 Edge 载入）
 > - 🏷️ **[查看 GitHub Releases 发布页](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases)**
 > - 📂 **[一键下载主分支源码压缩包 (main.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/archive/refs/heads/main.zip)**
 
@@ -19,7 +19,7 @@
 > 任何网页（包括 GitHub）出于浏览器底层**安全沙箱（Security Sandbox）**防护规则，均**被禁止通过网页超链接直接调起特权协议 `edge://` 或 `chrome://`**，防止恶意网站私自篡改扩展或提权。
 >
 > **极简 3 步安装运行**：
-> 1. 下载上方的 **[v1.0.0 扩展安装包 (.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** 并解压到电脑任意目录；
+> 1. 下载上方的 **[v1.0.1 扩展安装包 (.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.1/chaoxing-quiz-edge-extension-v1.0.1.zip)** 并解压到电脑任意目录；
 > 2. 打开 Edge 浏览器，在地址栏复制或输入以下地址并回车：
 >    ```text
 >    edge://extensions/
@@ -27,6 +27,19 @@
 > 3. 打开页面上的 **「开发人员模式」** 开关，点击 **「加载解压缩的扩展」**，选中解压出的文件夹即可完成安装！
 >
 > *(注：若后续将本扩展上架至 [Microsoft Edge 外接程序商店 (Edge Add-ons)](https://microsoftedge.microsoft.com/addons)，届时可直接通过官方商店网页链接实现真正的一键安装。)*
+
+---
+
+## 🚀 v1.0.1 架构修复与稳定性重构升级 (Changelog)
+
+- **[P0] 修复多 Frame 竞争与空 Frame 抢答 (TASK-01)**：内容脚本配置 `match_about_blank: false`，且在无题目 DOM 的 Frame 中绝对静默；Service Worker 通过 `scripting.executeScript` 探测并强绑定持有题目的 `frameId`。
+- **[P0] 消除跨 Frame 代理，实现主世界握手安全桥接 (TASK-02 & TASK-08)**：每个测验 Frame 独立在自身上下文注入 `page_inject.js`，引入随机 `BRIDGE_TOKEN` 双向握手校验，全局方法调用严格限制在白名单中。
+- **[P0] 修复选项点击反选与残留选中项 (TASK-03)**：重构为对称差集点击算法，精确比对当前已选与目标集合，仅翻转需要变更的选项，彻底根治多选题反选与重试翻转错误。
+- **[P1] 补齐任务中断与 60 秒请求超时控制 (TASK-04 & TASK-05)**：补齐后台 `STOP_TASK` 分支，引入 `AbortController` 瞬时中断进行中的 API 请求，单次请求增加 60 秒超时保护。
+- **[P1] 大题量分批推理与会话持久化 (TASK-05)**：按每批 10 题进行分片推理与分批回填，避免长上下文 JSON 截断；`taskState` 同步持久化至 `chrome.storage.session` 防止后台休眠丢失状态。
+- **[P1] UEditor 富文本 HTML 转义与段落包裹 (TASK-06)**：移除冗余逐字写入，引入 `textToSafeHtml` 对 `<`、`>`、`&` 及换行符规范转义并按 `<p>` 写入，保护代码/数学公式不被吞噬。
+- **[P2] 题干图片公式占位与填空多空智能切分 (TASK-07)**：抽取图片 `[公式/图片: ...]` 占位并在日志中输出人工复核提示；全链路改用题目唯一 `qid` 强绑定；单字符串多空答案按分隔符自动拆分槽位。
+- **[P2] API URL 智能补齐 (TASK-08)**：对仅输入根域名的 Base URL 智能识别并自动补齐 `/v1/chat/completions`。
 
 ---
 

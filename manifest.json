@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "__MSG_extShortName__",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "__MSG_extDesc__",
   "default_locale": "zh_CN",
   "icons": {
@@ -30,7 +30,7 @@
         "*://*.edu.cn/*"
       ],
       "all_frames": true,
-      "match_about_blank": true,
+      "match_about_blank": false,
       "run_at": "document_idle",
       "js": ["content/content.js"],
       "css": ["content/content.css"]
