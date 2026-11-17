@@ -6,6 +6,32 @@
 
 ---
 
+## ⚡ 一键下载与安装 (Quick Download & Install)
+
+> [!TIP]
+> ### 📦 一键下载链接（即下即用）
+> - 🚀 **[直接下载最新打包扩展 (.zip) - v1.0.0](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)**（推荐：解压后直接在 Edge 载入）
+> - 🏷️ **[查看 GitHub Releases 发布页](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases)**
+> - 📂 **[一键下载主分支源码压缩包 (main.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/archive/refs/heads/main.zip)**
+
+### 🧩 关于一键跳转 `edge://extensions/` 的说明与极简安装
+> [!NOTE]
+> 任何网页（包括 GitHub）出于浏览器底层**安全沙箱（Security Sandbox）**防护规则，均**被禁止通过网页超链接直接调起特权协议 `edge://` 或 `chrome://`**，防止恶意网站私自篡改扩展或提权。
+>
+> **极简 3 步安装运行**：
+> 1. 下载上方的 **[v1.0.0 扩展安装包 (.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** 并解压到电脑任意目录；
+> 2. 打开 Edge 浏览器，在地址栏复制或输入以下地址并回车：
+>    ```text
+>    edge://extensions/
+>    ```
+> 3. 打开页面上的 **「开发人员模式」** 开关，点击 **「加载解压缩的扩展」**，选中解压出的文件夹即可完成安装！
+>
+> *(注：若后续将本扩展上架至 [Microsoft Edge 外接程序商店 (Edge Add-ons)](https://microsoftedge.microsoft.com/addons)，届时可直接通过官方商店网页链接实现真正的一键安装。)*
+
+---
+
+---
+
 ## ✨ 核心特性
 
 1. **精准题目识别与穿透**：

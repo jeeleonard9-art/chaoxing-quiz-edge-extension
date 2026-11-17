@@ -6,6 +6,32 @@ An automated quiz-answering browser extension for **Chaoxing MOOC (超星学习�
 
 ---
 
+## ⚡ Quick Download & Installation
+
+> [!TIP]
+> ### 📦 Direct Download Links (Ready to use)
+> - 🚀 **[Download Latest Extension Package (.zip) - v1.0.0](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** (Recommended: Unzip and load directly into Edge)
+> - 🏷️ **[View All Releases on GitHub](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases)**
+> - 📂 **[Download Source Code Archive (main.zip)](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/archive/refs/heads/main.zip)**
+
+### 🧩 Notice on `edge://extensions/` Links & 3-Step Setup
+> [!NOTE]
+> Due to the security sandbox enforced by Chromium and Microsoft Edge, external web pages (including GitHub) are **strictly forbidden from opening internal privileged protocols like `edge://` or `chrome://`** via regular web links to prevent malicious script execution or silent extension alterations.
+>
+> **Fast 3-Step Setup**:
+> 1. Download the **[v1.0.0 ZIP Package](https://github.com/jeeleonard9-art/chaoxing-quiz-edge-extension/releases/download/v1.0.0/chaoxing-quiz-edge-extension-v1.0.0.zip)** above and extract it to any folder.
+> 2. Open Microsoft Edge, copy and paste this address into the URL bar and press Enter:
+>    ```text
+>    edge://extensions/
+>    ```
+> 3. Toggle on **"Developer mode"** in the sidebar/top, click **"Load unpacked"**, and select the extracted extension folder!
+>
+> *(Note: If this extension is published to the [Microsoft Edge Add-ons Store](https://microsoftedge.microsoft.com/addons), direct web link installation will be supported.)*
+
+---
+
+---
+
 ## ✨ Key Features
 
 1. **Robust DOM Parsing & Multi-layer iframe Penetration**:
