@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Chaoxing Quiz Auto Assistant",
+    "description": "Extension title"
+  },
+  "extShortName": {
+    "message": "QuizAuto",
+    "description": "Extension short name"
+  },
+  "extDesc": {
+    "message": "Automated quiz answering Edge extension for Chaoxing MOOC powered by LLM APIs with realistic human-like mouse & keyboard interactions.",
+    "description": "Extension description"
+  }
+}

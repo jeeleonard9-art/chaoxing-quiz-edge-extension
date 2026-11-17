@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超星学习通自动答题助手 / Chaoxing Quiz Auto</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部状态栏 -->
+    <header class="app-header">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Logo" class="logo">
+        <div class="brand-text">
+          <h1 data-i18n="appTitle">学习通答题助手</h1>
+          <span class="version-tag">Edge MV3</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button type="button" id="langToggleBtn" class="btn-lang" title="Switch Language / 切换语言">EN</button>
+        <div id="pageStatusBadge" class="status-badge badge-warning">
+          <span class="dot"></span>
+          <span id="pageStatusText" data-i18n="statusDetecting">检测中...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 配置面板 -->
+    <section class="card config-card">
+      <div class="card-header">
+        <span class="card-title" data-i18n="configTitle">大模型 API 配置</span>
+        <button id="saveConfigBtn" class="btn-text" data-i18n="autoSaved">已自动保存</button>
+      </div>
+
+      <div class="form-group">
+        <label for="apiUrl" data-i18n="apiUrlLabel">API Base URL</label>
+        <div class="input-wrapper">
+          <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="input-hint" data-i18n="apiUrlHint">兼容 OpenAI 规范 /v1 格式或自定义代理中转接口</div>
+      </div>
+
+      <div class="form-group">
+        <label for="apiKey" data-i18n="apiKeyLabel">API Key</label>
+        <div class="input-wrapper password-wrapper">
+          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
+          <button type="button" id="toggleKeyVisibility" class="btn-icon" title="显示/隐藏密钥">
+            <svg id="eyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label for="modelSelect" data-i18n="modelLabel">模型名称 (Model)</label>
+          <div class="input-wrapper">
+            <input type="text" id="modelSelect" list="commonModels" placeholder="Agnes-3.0-flash" autocomplete="off">
+            <datalist id="commonModels">
+              <option value="Agnes-3.0-flash">Agnes-3.0-flash (默认预置)</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              <option value="gpt-4o">GPT-4o</option>
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
+              <option value="deepseek-chat">DeepSeek-V3 / Chat</option>
+              <option value="qwen-plus">通义千问 Qwen-Plus</option>
+            </datalist>
+          </div>
+        </div>
+        <div class="form-group flex-1">
+          <label for="tempInput" data-i18n="tempLabel">温度 (Temp)</label>
+          <div class="input-wrapper">
+            <input type="number" id="tempInput" min="0" max="1" step="0.1" value="0.2">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input type="checkbox" id="autoSubmitCheck" checked>
+          <span data-i18n="autoSubmitLabel">答题后自动「暂时保存」并确认提交</span>
+        </label>
+      </div>
+
+      <div class="config-actions">
+        <button id="testConnBtn" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span data-i18n="testBtn">测试连接</span>
+        </button>
+        <span id="testResult" class="test-result-tip"></span>
+      </div>
+    </section>
+
+    <!-- 主控操作区 -->
+    <section class="card control-card">
+      <div class="progress-container">
+        <div class="progress-labels">
+          <span id="progressStep" data-i18n="waitingCommand">等待指令</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="startBtn" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span data-i18n="startBtn">开始自动答题</span>
+        </button>
+        <button id="stopBtn" class="btn btn-danger" disabled>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12"></rect>
+          </svg>
+          <span data-i18n="stopBtn">停止</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 实时执行日志 -->
+    <section class="card log-card">
+      <div class="card-header">
+        <span class="card-title" data-i18n="consoleTitle">执行控制台</span>
+        <button id="clearLogBtn" class="btn-text" data-i18n="clearLogs">清空</button>
+      </div>
+      <div id="logConsole" class="log-console">
+        <div class="log-line text-muted" data-i18n="welcomeLog">[就绪] 欢迎使用超星学习通全自动答题插件。</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

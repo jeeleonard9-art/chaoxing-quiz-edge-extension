@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "超星学习通全自动答题助手",
+    "description": "Extension title"
+  },
+  "extShortName": {
+    "message": "学习通答题",
+    "description": "Extension short name"
+  },
+  "extDesc": {
+    "message": "基于大模型 API 的超星学习通全自动答题插件，支持客观题/填空题/简答题智能识别、拟真键鼠交互作答及自动提交。",
+    "description": "Extension description"
+  }
+}
